@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Bahasa Jepang</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="home-view" class="view active">
+        <header>
+            <div class="logo-jp">🎌</div>
+            <h1>Belajar Bahasa Jepang Buat Pacar Aku Laura</h1>
+            <p>Semangatt yaaa sayangkuu belajarnya, kamu pasti bisa!</p>
+        </header>
+        
+        <div class="grid-menu">
+            <button class="menu-btn hira-char" onclick="startQuiz('hiragana_char')">
+                <span class="jp-badge">あ</span>
+                Huruf Hiragana
+            </button>
+            <button class="menu-btn kata-char" onclick="startQuiz('katakana_char')">
+                <span class="jp-badge">ア</span>
+                Huruf Katakana
+            </button>
+            <button class="menu-btn hira-sent" onclick="startQuiz('hiragana_sent')">
+                <span class="jp-badge">会話</span>
+                Kalimat Hiragana
+            </button>
+            <button class="menu-btn kata-sent" onclick="startQuiz('katakana_sent')">
+                <span class="jp-badge">文</span>
+                Kalimat Katakana
+            </button>
+        </div>
+    </div>
+
+    <div id="quiz-view" class="view">
+        <div class="quiz-header">
+            <span id="question-counter">Soal 1 / 35</span>
+            <button class="btn-quit" onclick="goHome()">Keluar</button>
+        </div>
+
+        <div class="progress-bar-container">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        
+        <div class="question-container">
+            <h2 id="question-text">あ</h2>
+        </div>
+        
+        <div class="options-container">
+            <button class="option-btn" id="opt0" onclick="selectOption(0)"></button>
+            <button class="option-btn" id="opt1" onclick="selectOption(1)"></button>
+        </div>
+        
+        <div id="feedback-box" class="feedback-box hidden">
+            <p id="feedback-text"></p>
+        </div>
+        
+        <button id="next-btn" class="btn-next hidden" onclick="nextQuestion()">Soal Selanjutnya →</button>
+    </div>
+
+    <div id="result-view" class="view">
+        <div class="result-card">
+            <h2>Latihan Selesai! 🎉</h2>
+            <div class="score-circle">
+                <h1 id="final-score">0</h1>
+                <p>Skor Anda</p>
+            </div>
+            <p id="score-message">Luar biasa! Pertahankan bakatmu!</p>
+        </div>
+        
+        <div class="result-actions">
+            <button class="btn-review" onclick="showReview()">🔍 Review Jawaban</button>
+            <button class="btn-restart" onclick="goHome()">🔄 Main Lagi</button>
+        </div>
+        
+        <div id="review-container" class="review-container hidden">
+            <h3>Daftar Evaluasi:</h3>
+            <ul id="review-list"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
