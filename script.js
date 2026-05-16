@@ -385,12 +385,27 @@ function renderQuestion() {
     opt1.dataset.isCorrect = (options[1] === qData.correct);
 }
 
+// FUNGSI UNTUK MENGELUARKAN SUARA BAHASA JEPANG
+function playJapaneseSound(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); 
+        let utterance = new SpeechSynthesisUtterance();
+        utterance.text = text;
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
 function selectOption(selectedIndex) {
     const selectedBtn = document.getElementById(`opt${selectedIndex}`);
     const otherBtn = document.getElementById(`opt${selectedIndex === 0 ? 1 : 0}`);
     const isCorrect = selectedBtn.dataset.isCorrect === 'true';
     const qData = currentQuestions[currentIndex];
     
+    // Panggil fungsi suara saat opsi dipilih
+    playJapaneseSound(qData.q);
+
     const feedbackBox = document.getElementById('feedback-box');
     const feedbackText = document.getElementById('feedback-text');
 

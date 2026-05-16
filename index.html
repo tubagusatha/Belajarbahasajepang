@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belajar Bahasa Jepang</title>
+    <title>Nihongo Kuisu - Belajar Bahasa Jepang</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- HALAMAN 1: DASHBOARD UTAMA -->
     <div id="home-view" class="view active">
         <header>
             <div class="logo-jp">🎌</div>
-            <h1>Belajar Bahasa Jepang Buat Pacar Aku Laura</h1>
-            <p>Semangatt yaaa sayangkuu belajarnya, kamu pasti bisa!</p>
+            <h1>Nihongo Kuisu</h1>
+            <p>Pilih kategori seru di bawah ini untuk mulai belajar!</p>
         </header>
         
         <div class="grid-menu">
@@ -35,6 +36,7 @@
         </div>
     </div>
 
+    <!-- HALAMAN 2: HALAMAN KUIS -->
     <div id="quiz-view" class="view">
         <div class="quiz-header">
             <span id="question-counter">Soal 1 / 35</span>
@@ -54,6 +56,7 @@
             <button class="option-btn" id="opt1" onclick="selectOption(1)"></button>
         </div>
         
+        <!-- Wadah Alert Feedback -->
         <div id="feedback-box" class="feedback-box hidden">
             <p id="feedback-text"></p>
         </div>
@@ -61,6 +64,7 @@
         <button id="next-btn" class="btn-next hidden" onclick="nextQuestion()">Soal Selanjutnya →</button>
     </div>
 
+    <!-- HALAMAN 3: HALAMAN HASIL & REVIEW -->
     <div id="result-view" class="view">
         <div class="result-card">
             <h2>Latihan Selesai! 🎉</h2>

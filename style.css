@@ -38,7 +38,7 @@ body {
 .view {
     display: none;
     width: 100%;
-    max-width: 450px; /* Standar Ukuran Mobile Layar HP */
+    max-width: 450px;
     background: transparent;
     padding: 8px;
     margin-top: 20px;
@@ -54,7 +54,6 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ==================== DASHBOARD UTAMA ==================== */
 header {
     text-align: center;
     margin-bottom: 32px;
@@ -126,8 +125,6 @@ header p {
 .hira-sent { background: var(--hira-sent-color); }
 .kata-sent { background: var(--kata-sent-color); }
 
-
-/* ==================== HALAMAN KUIS ==================== */
 .quiz-header {
     display: flex;
     justify-content: space-between;
@@ -173,7 +170,7 @@ header p {
 }
 
 #question-text {
-    font-size: 40px;
+    font-size: 56px;
     font-weight: 800;
     color: #0f172a;
 }
@@ -198,7 +195,6 @@ header p {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-/* REQUEST WARNA SANGAT WARNA WARNI */
 .option-btn.correct {
     background: var(--correct-blue) !important;
     border-color: var(--correct-blue) !important;
@@ -211,7 +207,6 @@ header p {
     color: white !important;
 }
 
-/* Box Alert Tambahan Untuk Feedback */
 .feedback-box {
     margin-top: 16px;
     padding: 16px;
@@ -253,8 +248,6 @@ header p {
     box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
 }
 
-
-/* ==================== HALAMAN HASIL ==================== */
 .result-card {
     background: var(--card-bg);
     padding: 32px 24px;
