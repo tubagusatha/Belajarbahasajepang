@@ -335,13 +335,34 @@ function goHome() {
 // FUNGSI SUARA (TEXT TO SPEECH)
 function playJapaneseSound(text) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); 
+        window.speechSynthesis.cancel(); // Hentikan suara sebelumnya jika masih berjalan
+        
         let utterance = new SpeechSynthesisUtterance();
         utterance.text = text;
         utterance.lang = 'ja-JP';
-        utterance.rate = 0.8;
+        utterance.rate = 0.85; // Sedikit dinaikkan dari 0.8 agar artikulasi tidak terlalu terseret
+
+        // AMBIL SEMUA SUARA YANG TERSEDIA DI BROWSER
+        let voices = window.speechSynthesis.getVoices();
+        
+        // Cari suara Jepang terbaik (Prioritas: Google Japanese, lalu suara lokal, lalu apa saja yang ja-JP)
+        let selectedVoice = voices.find(voice => voice.lang === 'ja-JP' && voice.name.includes('Google')) 
+                         || voices.find(voice => voice.lang === 'ja-JP' && voice.localService === true)
+                         || voices.find(voice => voice.lang === 'ja-JP');
+
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        }
+
         window.speechSynthesis.speak(utterance);
     }
+}
+
+// Supaya daftar suara ter-load dengan sempurna saat aplikasi pertama kali dibuka (Solusi bug Google Chrome)
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = function() {
+        window.speechSynthesis.getVoices();
+    };
 }
 
 // LOGIKA KUIS
