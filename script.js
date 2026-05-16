@@ -1,6 +1,6 @@
-// DATABASE LENGKAP: 100 SOAL PER KATEGORI (TOTAL 400 SOAL)
+// DATABASE LENGKAP 400 SOAL DENGAN 6 KATEGORI
 const questionBank = {
-    hiragana_char: [
+    hiragana_basic: [
         { q: "あ", correct: "A", wrong: "I" }, { q: "い", correct: "I", wrong: "U" },
         { q: "う", correct: "U", wrong: "E" }, { q: "え", correct: "E", wrong: "O" },
         { q: "お", correct: "O", wrong: "A" }, { q: "か", correct: "Ka", wrong: "Ki" },
@@ -23,7 +23,9 @@ const questionBank = {
         { q: "ら", correct: "Ra", wrong: "Ri" }, { q: "り", correct: "Ri", wrong: "Ru" },
         { q: "る", correct: "Ru", wrong: "Re" }, { q: "れ", correct: "Re", wrong: "Ro" },
         { q: "ろ", correct: "Ro", wrong: "Wa" }, { q: "わ", correct: "Wa", wrong: "Wo" },
-        { q: "を", correct: "Wo", wrong: "N" }, { q: "ん", correct: "N", wrong: "Wa" },
+        { q: "を", correct: "Wo", wrong: "N" }, { q: "ん", correct: "N", wrong: "Wa" }
+    ],
+    hiragana_adv: [
         { q: "が", correct: "Ga", wrong: "Gi" }, { q: "ぎ", correct: "Gi", wrong: "Gu" },
         { q: "ぐ", correct: "Gu", wrong: "Ge" }, { q: "げ", correct: "Ge", wrong: "Go" },
         { q: "ご", correct: "Go", wrong: "Za" }, { q: "ざ", correct: "Za", wrong: "Ji" },
@@ -50,9 +52,11 @@ const questionBank = {
         { q: "ぎゃ", correct: "Gya", wrong: "Gyu" }, { q: "ぎゅ", correct: "Gyu", wrong: "Gyo" },
         { q: "ぎょ", correct: "Gyo", wrong: "Ja" }, { q: "じゃ", correct: "Ja", wrong: "Ju" },
         { q: "じゅ", correct: "Ju", wrong: "Jo" }, { q: "じょ", correct: "Jo", wrong: "Bya" },
-        { q: "びゃ", correct: "Bya", wrong: "Byu" }, { q: "びゅ", correct: "Byu", wrong: "Byo" }
+        { q: "びゃ", correct: "Bya", wrong: "Byu" }, { q: "びゅ", correct: "Byu", wrong: "Byo" },
+        { q: "ぴゃ", correct: "Pya", wrong: "Pyu" }, { q: "ぴゅ", correct: "Pyu", wrong: "Pyo" },
+        { q: "ぴょ", correct: "Pyo", wrong: "Pya" }
     ],
-    katakana_char: [
+    katakana_basic: [
         { q: "ア", correct: "A", wrong: "O" }, { q: "イ", correct: "I", wrong: "E" },
         { q: "ウ", correct: "U", wrong: "A" }, { q: "エ", correct: "E", wrong: "I" },
         { q: "オ", correct: "O", wrong: "U" }, { q: "カ", correct: "Ka", wrong: "Ke" },
@@ -75,7 +79,9 @@ const questionBank = {
         { q: "ラ", correct: "Ra", wrong: "Ri" }, { q: "リ", correct: "Ri", wrong: "Ru" },
         { q: "ル", correct: "Ru", wrong: "Re" }, { q: "レ", correct: "Re", wrong: "Ro" },
         { q: "ロ", correct: "Ro", wrong: "Wa" }, { q: "ワ", correct: "Wa", wrong: "Wo" },
-        { q: "ヲ", correct: "Wo", wrong: "N" }, { q: "ン", correct: "N", wrong: "Wa" },
+        { q: "ヲ", correct: "Wo", wrong: "N" }, { q: "ン", correct: "N", wrong: "Wa" }
+    ],
+    katakana_adv: [
         { q: "ガ", correct: "Ga", wrong: "Gi" }, { q: "ギ", correct: "Gi", wrong: "Gu" },
         { q: "グ", correct: "Gu", wrong: "Ge" }, { q: "ゲ", correct: "Ge", wrong: "Go" },
         { q: "ゴ", correct: "Go", wrong: "Za" }, { q: "ザ", correct: "Za", wrong: "Ji" },
@@ -102,7 +108,9 @@ const questionBank = {
         { q: "ギャ", correct: "Gya", wrong: "Gyu" }, { q: "ギュ", correct: "Gyu", wrong: "Gyo" },
         { q: "ギョ", correct: "Gyo", wrong: "Ja" }, { q: "ジャ", correct: "Ja", wrong: "Ju" },
         { q: "ジュ", correct: "Ju", wrong: "Jo" }, { q: "ジョ", correct: "Jo", wrong: "Bya" },
-        { q: "ビャ", correct: "Bya", wrong: "Byu" }, { q: "ビュ", correct: "Byu", wrong: "Byo" }
+        { q: "ビャ", correct: "Bya", wrong: "Byu" }, { q: "ビュ", correct: "Byu", wrong: "Byo" },
+        { q: "ピャ", correct: "Pya", wrong: "Pyu" }, { q: "ピュ", correct: "Pyu", wrong: "Pyo" },
+        { q: "ピョ", correct: "Pyo", wrong: "Pya" }
     ],
     hiragana_sent: [
         { q: "おはよう", correct: "Selamat Pagi", wrong: "Selamat Malam" },
@@ -188,7 +196,6 @@ const questionBank = {
         { q: "め", correct: "Mata", wrong: "Hidung" },
         { q: "みみ", correct: "Telinga", wrong: "Mata" },
         { q: "くち", correct: "Mulut", wrong: "Telinga" },
-        { q: "はな (Hidung)", correct: "Hidung", wrong: "Mata" },
         { q: "て", correct: "Tangan", wrong: "Kaki" },
         { q: "あし", correct: "Kaki", wrong: "Tangan" },
         { q: "あたま", correct: "Kepala", wrong: "Perut" },
@@ -229,9 +236,9 @@ const questionBank = {
         { q: "オフライン", correct: "Offline", wrong: "Online" },
         { q: "クリプト", correct: "Kripto / Crypto", wrong: "Uang Kertas" },
         { q: "コイン", correct: "Koin", wrong: "Kertas" },
-        { q: "トレード", correct: "Trading / Berdagang", wrong: "Menabung" },
+        { q: "トレード", correct: "Trading", wrong: "Menabung" },
         { q: "ロス", correct: "Loss / Kerugian", wrong: "Keuntungan" },
-        { q: "バランス", correct: "Saldo / Keseimbangan", wrong: "Hutang" },
+        { q: "バランス", correct: "Saldo", wrong: "Hutang" },
         { q: "チャート", correct: "Grafik / Chart", wrong: "Tabel" },
         { q: "インベスト", correct: "Investasi", wrong: "Pengeluaran" },
         { q: "マーケット", correct: "Pasar", wrong: "Pabrik" },
@@ -310,13 +317,12 @@ const questionBank = {
     ]
 };
 
-// GLOBAL APP STATES
+// GLOBAL STATES
 let currentQuestions = [];
 let currentIndex = 0;
 let score = 0;
 let userAnswers = [];
 
-// Fungsi Pindah Halaman
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -326,24 +332,30 @@ function goHome() {
     switchView('home-view');
 }
 
-// LOGIKA UTAMA: PENGACAKAN 100 SOAL DAN LIMITASI (35 vs 20)
+// FUNGSI SUARA (TEXT TO SPEECH)
+function playJapaneseSound(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); 
+        let utterance = new SpeechSynthesisUtterance();
+        utterance.text = text;
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+// LOGIKA KUIS
 function startQuiz(category) {
     let allQuestions = questionBank[category];
-    
-    // 1. Acak total 100 soal
     let shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     
-    // 2. Cek kategori untuk menentukan jumlah limit (20 atau 35)
-    let questionLimit = 35; // Default untuk huruf
-    
-    // Jika itu adalah kalimat (sent), maka cuma ambil 20
+    // Set 35 untuk huruf, 20 untuk kalimat
+    let questionLimit = 35;
     if (category === 'hiragana_sent' || category === 'katakana_sent') {
         questionLimit = 20; 
     }
     
-    // 3. Potong soal yang sudah diacak sesuai jumlah limit yang diminta
     currentQuestions = shuffled.slice(0, questionLimit); 
-    
     currentIndex = 0;
     score = 0;
     userAnswers = [];
@@ -375,7 +387,6 @@ function renderQuestion() {
     feedbackBox.className = "feedback-box hidden";
     nextBtn.classList.add('hidden');
 
-    // Acak posisi tombol Benar & Salah agar tidak bisa ditebak
     let options = [qData.correct, qData.wrong].sort(() => 0.5 - Math.random());
     
     opt0.innerText = options[0];
@@ -385,39 +396,24 @@ function renderQuestion() {
     opt1.dataset.isCorrect = (options[1] === qData.correct);
 }
 
-// FUNGSI UNTUK MENGELUARKAN SUARA BAHASA JEPANG
-function playJapaneseSound(text) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); 
-        let utterance = new SpeechSynthesisUtterance();
-        utterance.text = text;
-        utterance.lang = 'ja-JP';
-        utterance.rate = 0.8;
-        window.speechSynthesis.speak(utterance);
-    }
-}
-
 function selectOption(selectedIndex) {
     const selectedBtn = document.getElementById(`opt${selectedIndex}`);
     const otherBtn = document.getElementById(`opt${selectedIndex === 0 ? 1 : 0}`);
     const isCorrect = selectedBtn.dataset.isCorrect === 'true';
     const qData = currentQuestions[currentIndex];
     
-    // Panggil fungsi suara saat opsi dipilih
+    // Bunyikan Suara Saat Opsi Dipilih
     playJapaneseSound(qData.q);
-
-    const feedbackBox = document.getElementById('feedback-box');
-    const feedbackText = document.getElementById('feedback-text');
 
     document.getElementById('opt0').disabled = true;
     document.getElementById('opt1').disabled = true;
 
     userAnswers.push({
-        question: qData.q,
-        userAnswer: selectedBtn.innerText,
-        correctAnswer: qData.correct,
-        isCorrect: isCorrect
+        question: qData.q, userAnswer: selectedBtn.innerText, correctAnswer: qData.correct, isCorrect: isCorrect
     });
+
+    const feedbackBox = document.getElementById('feedback-box');
+    const feedbackText = document.getElementById('feedback-text');
 
     if (isCorrect) {
         selectedBtn.classList.add('correct');
@@ -426,9 +422,7 @@ function selectOption(selectedIndex) {
         score++;
     } else {
         selectedBtn.classList.add('wrong');
-        if (otherBtn.dataset.isCorrect === 'true') {
-            otherBtn.classList.add('correct');
-        }
+        if (otherBtn.dataset.isCorrect === 'true') otherBtn.classList.add('correct');
         feedbackText.innerText = `❌ Salah! Jawaban yang benar adalah: ${qData.correct}`;
         feedbackBox.className = "feedback-box alert-danger";
     }
@@ -462,25 +456,70 @@ function endQuiz() {
 function showReview() {
     const container = document.getElementById('review-container');
     const list = document.getElementById('review-list');
-    
     container.classList.remove('hidden');
     list.innerHTML = ""; 
 
     userAnswers.forEach((ans, index) => {
         let li = document.createElement('li');
-        
         if (ans.isCorrect) {
             li.className = 'rev-item-success';
-            li.innerHTML = `<strong>Soal ${index+1}: ${ans.question}</strong><br>
-                            Jawaban Kamu: <span style="color:var(--correct-blue); font-weight:700">${ans.userAnswer}</span> (Benar)`;
+            li.innerHTML = `<strong>Soal ${index+1}: ${ans.question}</strong><br>Jawaban Kamu: <span style="color:var(--correct-blue); font-weight:700">${ans.userAnswer}</span> (Benar)`;
         } else {
             li.className = 'rev-item-danger';
-            li.innerHTML = `<strong>Soal ${index+1}: ${ans.question}</strong><br>
-                            Jawaban Kamu: <del style="color:var(--wrong-red)">${ans.userAnswer}</del><br>
-                            Harusnya: <span style="color:var(--correct-blue); font-weight:700">${ans.correctAnswer}</span>`;
+            li.innerHTML = `<strong>Soal ${index+1}: ${ans.question}</strong><br>Jawaban Kamu: <del style="color:var(--wrong-red)">${ans.userAnswer}</del><br>Harusnya: <span style="color:var(--correct-blue); font-weight:700">${ans.correctAnswer}</span>`;
         }
         list.appendChild(li);
     });
-    
     container.scrollIntoView({ behavior: 'smooth' });
+}
+
+// LOGIKA KAMUS (6 TAB INTERAKTIF)
+function openDictionary() {
+    switchView('dictionary-view');
+    renderDictionary('hiragana_basic'); // Default Tab
+}
+
+function renderDictionary(type) {
+    // 1. Atur Warna Tombol Tab Aktif
+    document.querySelectorAll('.dict-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab-' + type).classList.add('active');
+
+    const grid = document.getElementById('dict-grid');
+    grid.innerHTML = ''; 
+    
+    // 2. Cek apakah ini mode kalimat (Sentences)
+    const isSentence = type.includes('sent');
+    if (isSentence) {
+        grid.classList.add('sent-mode'); // Ubah layout grid jadi memanjang
+    } else {
+        grid.classList.remove('sent-mode'); // Layout grid kotak-kotak kecil
+    }
+    
+    const data = questionBank[type];
+    
+    // 3. Render Item ke Layar
+    data.forEach(item => {
+        const btn = document.createElement('button');
+        
+        if (isSentence) {
+            // Desain Untuk Kalimat
+            btn.className = 'dict-sent-btn';
+            btn.onclick = () => playJapaneseSound(item.q);
+            btn.innerHTML = `
+                <span class="dict-sent-text">${item.q}</span>
+                <span class="dict-sent-meaning">${item.correct}</span>
+            `;
+        } else {
+            // Desain Untuk Huruf
+            btn.className = 'dict-char-btn';
+            btn.onclick = () => playLangSound(item.q); // Gunakan fungsi bunyi
+            btn.onclick = () => playJapaneseSound(item.q);
+            btn.innerHTML = `
+                <span class="dict-char">${item.q}</span>
+                <span class="dict-romaji">${item.correct}</span>
+            `;
+        }
+        
+        grid.appendChild(btn);
+    });
 }

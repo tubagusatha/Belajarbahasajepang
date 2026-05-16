@@ -8,23 +8,38 @@
 </head>
 <body>
 
-    <!-- HALAMAN 1: DASHBOARD UTAMA -->
+    <!-- HALAMAN 1: DASHBOARD UTAMA (7 TOMBOL) -->
     <div id="home-view" class="view active">
         <header>
             <div class="logo-jp">🎌</div>
-            <h1>Belajar Bahasa Jepang Buat Pacar Aku Laura</h1>
-            <p>Semangatt yaa belajarnya, kamu pasti bisa!</p>
+            <h1>Belajar Bahasa Jepang Buat Pacar Ku Laura</h1>
+            <p>Semangatt yaa sayangkuu kamuu pastii bisaa!!</p>
         </header>
         
         <div class="grid-menu">
-            <button class="menu-btn hira-char" onclick="startQuiz('hiragana_char')">
+            <button class="menu-btn dict-btn" onclick="openDictionary()">
+                <span class="jp-badge">辞書</span>
+                Kamus (Bersuara)
+            </button>
+            
+            <button class="menu-btn hira-char" onclick="startQuiz('hiragana_basic')">
                 <span class="jp-badge">あ</span>
-                Huruf Hiragana
+                Hiragana Dasar
             </button>
-            <button class="menu-btn kata-char" onclick="startQuiz('katakana_char')">
+            <button class="menu-btn hira-char-adv" onclick="startQuiz('hiragana_adv')">
+                <span class="jp-badge">が</span>
+                Hiragana Lanjutan
+            </button>
+            
+            <button class="menu-btn kata-char" onclick="startQuiz('katakana_basic')">
                 <span class="jp-badge">ア</span>
-                Huruf Katakana
+                Katakana Dasar
             </button>
+            <button class="menu-btn kata-char-adv" onclick="startQuiz('katakana_adv')">
+                <span class="jp-badge">ガ</span>
+                Katakana Lanjutan
+            </button>
+            
             <button class="menu-btn hira-sent" onclick="startQuiz('hiragana_sent')">
                 <span class="jp-badge">会話</span>
                 Kalimat Hiragana
@@ -56,7 +71,6 @@
             <button class="option-btn" id="opt1" onclick="selectOption(1)"></button>
         </div>
         
-        <!-- Wadah Alert Feedback -->
         <div id="feedback-box" class="feedback-box hidden">
             <p id="feedback-text"></p>
         </div>
@@ -64,7 +78,7 @@
         <button id="next-btn" class="btn-next hidden" onclick="nextQuestion()">Soal Selanjutnya →</button>
     </div>
 
-    <!-- HALAMAN 3: HALAMAN HASIL & REVIEW -->
+    <!-- HALAMAN 3: HALAMAN HASIL -->
     <div id="result-view" class="view">
         <div class="result-card">
             <h2>Latihan Selesai! 🎉</h2>
@@ -77,12 +91,37 @@
         
         <div class="result-actions">
             <button class="btn-review" onclick="showReview()">🔍 Review Jawaban</button>
-            <button class="btn-restart" onclick="goHome()">🔄 Main Lagi</button>
+            <button class="btn-restart" onclick="goHome()">🔄 Menu Utama</button>
         </div>
         
         <div id="review-container" class="review-container hidden">
             <h3>Daftar Evaluasi:</h3>
             <ul id="review-list"></ul>
+        </div>
+    </div>
+
+    <!-- HALAMAN 4: KAMUS AUDIO (6 TAB) -->
+    <div id="dictionary-view" class="view">
+        <div class="quiz-header">
+            <h2>Kamus Interaktif 📖</h2>
+            <button class="btn-quit" onclick="goHome()">Kembali</button>
+        </div>
+        
+        <div class="dict-tabs">
+            <button id="tab-hiragana_basic" class="tab-btn active" onclick="renderDictionary('hiragana_basic')">Hira Dasar</button>
+            <button id="tab-hiragana_adv" class="tab-btn" onclick="renderDictionary('hiragana_adv')">Hira Lanjut</button>
+            <button id="tab-katakana_basic" class="tab-btn" onclick="renderDictionary('katakana_basic')">Kata Dasar</button>
+            <button id="tab-katakana_adv" class="tab-btn" onclick="renderDictionary('katakana_adv')">Kata Lanjut</button>
+            <button id="tab-hiragana_sent" class="tab-btn" onclick="renderDictionary('hiragana_sent')">Kalimat Hira</button>
+            <button id="tab-katakana_sent" class="tab-btn" onclick="renderDictionary('katakana_sent')">Kalimat Kata</button>
+        </div>
+        
+        <div class="feedback-box alert-success" style="margin-bottom: 16px;">
+            💡 Pencet kotak di bawah untuk mendengarkan suaranya!
+        </div>
+
+        <div id="dict-grid" class="dict-grid">
+            <!-- Isi Kamus Dimunculkan Disini lewat JS -->
         </div>
     </div>
 
