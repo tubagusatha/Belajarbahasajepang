@@ -335,17 +335,15 @@ function goHome() {
 // FUNGSI SUARA (TEXT TO SPEECH)
 function playJapaneseSound(text) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Hentikan suara sebelumnya jika masih berjalan
+        window.speechSynthesis.cancel(); 
         
         let utterance = new SpeechSynthesisUtterance();
         utterance.text = text;
         utterance.lang = 'ja-JP';
-        utterance.rate = 0.85; // Sedikit dinaikkan dari 0.8 agar artikulasi tidak terlalu terseret
+        utterance.rate = 0.85; 
 
-        // AMBIL SEMUA SUARA YANG TERSEDIA DI BROWSER
         let voices = window.speechSynthesis.getVoices();
         
-        // Cari suara Jepang terbaik (Prioritas: Google Japanese, lalu suara lokal, lalu apa saja yang ja-JP)
         let selectedVoice = voices.find(voice => voice.lang === 'ja-JP' && voice.name.includes('Google')) 
                          || voices.find(voice => voice.lang === 'ja-JP' && voice.localService === true)
                          || voices.find(voice => voice.lang === 'ja-JP');
@@ -358,7 +356,6 @@ function playJapaneseSound(text) {
     }
 }
 
-// Supaya daftar suara ter-load dengan sempurna saat aplikasi pertama kali dibuka (Solusi bug Google Chrome)
 if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = function() {
         window.speechSynthesis.getVoices();
@@ -370,7 +367,6 @@ function startQuiz(category) {
     let allQuestions = questionBank[category];
     let shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     
-    // Set 35 untuk huruf, 20 untuk kalimat
     let questionLimit = 35;
     if (category === 'hiragana_sent' || category === 'katakana_sent') {
         questionLimit = 20; 
@@ -423,7 +419,6 @@ function selectOption(selectedIndex) {
     const isCorrect = selectedBtn.dataset.isCorrect === 'true';
     const qData = currentQuestions[currentIndex];
     
-    // Bunyikan Suara Saat Opsi Dipilih
     playJapaneseSound(qData.q);
 
     document.getElementById('opt0').disabled = true;
@@ -497,33 +492,29 @@ function showReview() {
 // LOGIKA KAMUS (6 TAB INTERAKTIF)
 function openDictionary() {
     switchView('dictionary-view');
-    renderDictionary('hiragana_basic'); // Default Tab
+    renderDictionary('hiragana_basic'); 
 }
 
 function renderDictionary(type) {
-    // 1. Atur Warna Tombol Tab Aktif
     document.querySelectorAll('.dict-tabs .tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById('tab-' + type).classList.add('active');
 
     const grid = document.getElementById('dict-grid');
     grid.innerHTML = ''; 
     
-    // 2. Cek apakah ini mode kalimat (Sentences)
     const isSentence = type.includes('sent');
     if (isSentence) {
-        grid.classList.add('sent-mode'); // Ubah layout grid jadi memanjang
+        grid.classList.add('sent-mode'); 
     } else {
-        grid.classList.remove('sent-mode'); // Layout grid kotak-kotak kecil
+        grid.classList.remove('sent-mode'); 
     }
     
     const data = questionBank[type];
     
-    // 3. Render Item ke Layar
     data.forEach(item => {
         const btn = document.createElement('button');
         
         if (isSentence) {
-            // Desain Untuk Kalimat
             btn.className = 'dict-sent-btn';
             btn.onclick = () => playJapaneseSound(item.q);
             btn.innerHTML = `
@@ -531,9 +522,7 @@ function renderDictionary(type) {
                 <span class="dict-sent-meaning">${item.correct}</span>
             `;
         } else {
-            // Desain Untuk Huruf
             btn.className = 'dict-char-btn';
-            btn.onclick = () => playLangSound(item.q); // Gunakan fungsi bunyi
             btn.onclick = () => playJapaneseSound(item.q);
             btn.innerHTML = `
                 <span class="dict-char">${item.q}</span>
@@ -545,11 +534,12 @@ function renderDictionary(type) {
     });
 }
 
-// ==================== FITUR CORAT-CORET (CANVAS + AI) ====================
+// ==================== FITUR CORAT-CORET (CANVAS + AI + UNDO) ====================
 let drawMode = ''; 
 const canvas = document.getElementById('drawing-board');
 const ctx = canvas.getContext('2d');
 let isDrawing = false;
+let undoStack = []; // ARRAY BARU UNTUK SIMPAN HISTORY CORETAN
 
 function openDrawMode(mode) {
     drawMode = mode;
@@ -563,12 +553,53 @@ function clearCanvas() {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     document.getElementById('draw-result-box').classList.add('hidden');
+    undoStack = []; // Kosongkan riwayat kalau dihapus semua
+}
+
+// FUNGSI UNDO BARU!
+function undoDraw() {
+    if (undoStack.length > 0) {
+        let lastState = undoStack.pop();
+        ctx.putImageData(lastState, 0, 0);
+    } else {
+        clearCanvas(); // Kalau habis, bersihkan aja
+    }
 }
 
 // LOGIKA MENGGAMBAR
+function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    let clientX, clientY;
+    
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+    };
+}
+
 function startPosition(e) {
+    // SIMPAN KONDISI KANVAS SEBELUM CORETAN BARU DIMULAI UNTUK UNDO
+    undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
     isDrawing = true;
-    draw(e);
+    ctx.beginPath(); 
+    const { x, y } = getCanvasCoords(e);
+    ctx.moveTo(x, y);
+    if (e.cancelable) e.preventDefault(); 
 }
 
 function endPosition() {
@@ -579,15 +610,11 @@ function endPosition() {
 function draw(e) {
     if (!isDrawing) return;
     
-    let x = e.clientX || e.touches[0].clientX;
-    let y = e.clientY || e.touches[0].clientY;
-    
-    const rect = canvas.getBoundingClientRect();
-    x = x - rect.left;
-    y = y - rect.top;
+    const { x, y } = getCanvasCoords(e);
 
-    ctx.lineWidth = 10; // Ketebalan pas biar kebaca rapi
+    ctx.lineWidth = 10; 
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.strokeStyle = "black";
 
     ctx.lineTo(x, y);
@@ -599,11 +626,14 @@ function draw(e) {
 }
 
 canvas.addEventListener('mousedown', startPosition);
-canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', endPosition);
+window.addEventListener('mouseup', endPosition);
+
 canvas.addEventListener('touchstart', startPosition, {passive: false});
-canvas.addEventListener('touchend', endPosition);
 canvas.addEventListener('touchmove', draw, {passive: false});
+canvas.addEventListener('touchend', endPosition);
+canvas.addEventListener('touchcancel', endPosition);
 
 // ==================== PROSES AI TESSERACT SUPER AKURAT ====================
 async function checkDrawing() {
@@ -617,22 +647,15 @@ async function checkDrawing() {
     resultBox.classList.add('hidden');
 
     try {
-        // TRIK RAHASIA: Tesseract benci huruf raksasa. 
-        // Kita bikin kanvas palsu yang ukurannya standar, lalu ngecilin coretanmu 
-        // jadi seukuran "font buku" (sekitar 60x60) biar AI-nya gampang baca.
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = 250;
         tempCanvas.height = 250;
         const tCtx = tempCanvas.getContext('2d');
         
-        // Kasih background putih murni
         tCtx.fillStyle = "white";
         tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Tempel gambar dari papan tulis kamu, tapi ukurannya di-press jadi kecil di tengah-tengah
         tCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 45, 45, 60, 60);
 
-        // Lempar gambar yang udah dikecilin ke AI
         const result = await Tesseract.recognize(tempCanvas, 'jpn', {
             tessedit_pageseg_mode: 10
         });
@@ -675,7 +698,6 @@ async function checkDrawing() {
             feedbackText.innerHTML = `Eits! Itu mah huruf ${wrongModeName} <strong>${foundWrongMode.q} (${foundWrongMode.correct})</strong>. Sekarang kan lagi mode ${modeName}! 😂`;
 
         } else if (/[a-zA-Z0-9]/.test(detectedChar)) {
-            // Kalau AI-nya masih ngeyel ngeluarin angka/abjad Latin kayak 'M'
             resultBox.className = "feedback-box alert-danger";
             feedbackText.innerHTML = `Waduh, AI kebingungan dan malah ngebaca coretanmu jadi abjad/angka "<strong>${detectedChar}</strong>". Coba coret lebih luwes lagi ala huruf Jepang!`;
 
