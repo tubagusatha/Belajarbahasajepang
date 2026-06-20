@@ -544,3 +544,156 @@ function renderDictionary(type) {
         grid.appendChild(btn);
     });
 }
+
+// ==================== FITUR CORAT-CORET (CANVAS + AI) ====================
+let drawMode = ''; 
+const canvas = document.getElementById('drawing-board');
+const ctx = canvas.getContext('2d');
+let isDrawing = false;
+
+function openDrawMode(mode) {
+    drawMode = mode;
+    document.getElementById('draw-title').innerText = mode === 'hiragana' ? 'Coret Hiragana ✍️' : 'Coret Katakana 🖍️';
+    document.getElementById('draw-result-box').classList.add('hidden');
+    switchView('draw-view');
+    clearCanvas();
+}
+
+function clearCanvas() {
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    document.getElementById('draw-result-box').classList.add('hidden');
+}
+
+// LOGIKA MENGGAMBAR
+function startPosition(e) {
+    isDrawing = true;
+    draw(e);
+}
+
+function endPosition() {
+    isDrawing = false;
+    ctx.beginPath(); 
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    
+    let x = e.clientX || e.touches[0].clientX;
+    let y = e.clientY || e.touches[0].clientY;
+    
+    const rect = canvas.getBoundingClientRect();
+    x = x - rect.left;
+    y = y - rect.top;
+
+    ctx.lineWidth = 10; // Ketebalan pas biar kebaca rapi
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "black";
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    
+    if (e.cancelable) e.preventDefault(); 
+}
+
+canvas.addEventListener('mousedown', startPosition);
+canvas.addEventListener('mouseup', endPosition);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('touchstart', startPosition, {passive: false});
+canvas.addEventListener('touchend', endPosition);
+canvas.addEventListener('touchmove', draw, {passive: false});
+
+// ==================== PROSES AI TESSERACT SUPER AKURAT ====================
+async function checkDrawing() {
+    const btnCheck = document.getElementById('btn-check-draw');
+    const resultBox = document.getElementById('draw-result-box');
+    const charResult = document.getElementById('draw-char-result');
+    const feedbackText = document.getElementById('draw-feedback-text');
+
+    btnCheck.innerText = "⏳ Sedang Membaca AI...";
+    btnCheck.disabled = true;
+    resultBox.classList.add('hidden');
+
+    try {
+        // TRIK RAHASIA: Tesseract benci huruf raksasa. 
+        // Kita bikin kanvas palsu yang ukurannya standar, lalu ngecilin coretanmu 
+        // jadi seukuran "font buku" (sekitar 60x60) biar AI-nya gampang baca.
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 250;
+        tempCanvas.height = 250;
+        const tCtx = tempCanvas.getContext('2d');
+        
+        // Kasih background putih murni
+        tCtx.fillStyle = "white";
+        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Tempel gambar dari papan tulis kamu, tapi ukurannya di-press jadi kecil di tengah-tengah
+        tCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 45, 45, 60, 60);
+
+        // Lempar gambar yang udah dikecilin ke AI
+        const result = await Tesseract.recognize(tempCanvas, 'jpn', {
+            tessedit_pageseg_mode: 10
+        });
+        
+        const rawText = result.data.text.replace(/\s/g, ''); 
+        const detectedChar = rawText.charAt(0);
+
+        let validCharacters = [];
+        let wrongCharacters = []; 
+        let modeName = "";
+        let wrongModeName = "";
+
+        if (drawMode === 'hiragana') {
+            validCharacters = [...questionBank.hiragana_basic, ...questionBank.hiragana_adv];
+            wrongCharacters = [...questionBank.katakana_basic, ...questionBank.katakana_adv];
+            modeName = "Hiragana";
+            wrongModeName = "Katakana";
+        } else {
+            validCharacters = [...questionBank.katakana_basic, ...questionBank.katakana_adv];
+            wrongCharacters = [...questionBank.hiragana_basic, ...questionBank.hiragana_adv];
+            modeName = "Katakana";
+            wrongModeName = "Hiragana";
+        }
+
+        const foundCorrect = validCharacters.find(item => item.q === detectedChar);
+        const foundWrongMode = wrongCharacters.find(item => item.q === detectedChar);
+
+        resultBox.classList.remove('hidden');
+        charResult.innerText = detectedChar || "?";
+
+        if (foundCorrect) {
+            resultBox.className = "feedback-box alert-success";
+            charResult.innerText = foundCorrect.q; 
+            feedbackText.innerHTML = `Hebat! Ini adalah huruf <strong>${foundCorrect.q} (${foundCorrect.correct})</strong>.`;
+            playJapaneseSound(foundCorrect.q);
+
+        } else if (foundWrongMode) {
+            resultBox.className = "feedback-box alert-danger";
+            charResult.innerText = foundWrongMode.q; 
+            feedbackText.innerHTML = `Eits! Itu mah huruf ${wrongModeName} <strong>${foundWrongMode.q} (${foundWrongMode.correct})</strong>. Sekarang kan lagi mode ${modeName}! 😂`;
+
+        } else if (/[a-zA-Z0-9]/.test(detectedChar)) {
+            // Kalau AI-nya masih ngeyel ngeluarin angka/abjad Latin kayak 'M'
+            resultBox.className = "feedback-box alert-danger";
+            feedbackText.innerHTML = `Waduh, AI kebingungan dan malah ngebaca coretanmu jadi abjad/angka "<strong>${detectedChar}</strong>". Coba coret lebih luwes lagi ala huruf Jepang!`;
+
+        } else if (detectedChar) {
+            resultBox.className = "feedback-box alert-danger";
+            feedbackText.innerHTML = `Terdeteksi sebagai karakter <strong>${detectedChar}</strong>. Masih meleset dikit, hapus tinta dan coba lagi!`;
+
+        } else {
+            resultBox.className = "feedback-box alert-danger";
+            charResult.innerText = "✖️";
+            feedbackText.innerHTML = "Aduh, AI pusing lihat coretannya. Pastikan gambarnya jelas ya!";
+        }
+
+    } catch (error) {
+        console.error(error);
+        alert("Gagal memproses gambar. Pastikan internetmu menyala ya!");
+    } finally {
+        btnCheck.innerText = "🔍 Deteksi Huruf";
+        btnCheck.disabled = false;
+    }
+}

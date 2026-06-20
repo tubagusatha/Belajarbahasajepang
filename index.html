@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nihongo Kuisu - Belajar Bahasa Jepang</title>
     <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 </head>
 <body>
 
-    <!-- HALAMAN 1: DASHBOARD UTAMA (7 TOMBOL) -->
     <div id="home-view" class="view active">
         <header>
             <div class="logo-jp">🎌</div>
@@ -20,6 +21,15 @@
             <button class="menu-btn dict-btn" onclick="openDictionary()">
                 <span class="jp-badge">辞書</span>
                 Kamus (Bersuara)
+            </button>
+            
+            <button class="menu-btn draw-hira-btn" onclick="openDrawMode('hiragana')">
+                <span class="jp-badge">✍️</span>
+                Corat-coret Hiragana
+            </button>
+            <button class="menu-btn draw-kata-btn" onclick="openDrawMode('katakana')">
+                <span class="jp-badge">🖍️</span>
+                Corat-coret Katakana
             </button>
             
             <button class="menu-btn hira-char" onclick="startQuiz('hiragana_basic')">
@@ -51,7 +61,6 @@
         </div>
     </div>
 
-    <!-- HALAMAN 2: HALAMAN KUIS -->
     <div id="quiz-view" class="view">
         <div class="quiz-header">
             <span id="question-counter">Soal 1 / 35</span>
@@ -78,7 +87,6 @@
         <button id="next-btn" class="btn-next hidden" onclick="nextQuestion()">Soal Selanjutnya →</button>
     </div>
 
-    <!-- HALAMAN 3: HALAMAN HASIL -->
     <div id="result-view" class="view">
         <div class="result-card">
             <h2>Latihan Selesai! 🎉</h2>
@@ -100,7 +108,6 @@
         </div>
     </div>
 
-    <!-- HALAMAN 4: KAMUS AUDIO (6 TAB) -->
     <div id="dictionary-view" class="view">
         <div class="quiz-header">
             <h2>Kamus Interaktif 📖</h2>
@@ -121,7 +128,31 @@
         </div>
 
         <div id="dict-grid" class="dict-grid">
-            <!-- Isi Kamus Dimunculkan Disini lewat JS -->
+            </div>
+    </div>
+
+    <div id="draw-view" class="view">
+        <div class="quiz-header">
+            <h2 id="draw-title">Corat-Coret 🎨</h2>
+            <button class="btn-quit" onclick="goHome()">Kembali</button>
+        </div>
+        
+        <div class="feedback-box alert-success" style="margin-bottom: 16px;">
+            💡 Tulis hurufnya dengan tebal dan jelas di kotak bawah ini!
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="drawing-board" width="300" height="300"></canvas>
+        </div>
+        
+        <div class="draw-actions">
+            <button class="btn-clear" onclick="clearCanvas()">🗑️ Hapus Tinta</button>
+            <button class="btn-check" onclick="checkDrawing()" id="btn-check-draw">🔍 Deteksi Huruf</button>
+        </div>
+
+        <div id="draw-result-box" class="feedback-box hidden">
+            <h1 id="draw-char-result" style="font-size: 48px;"></h1>
+            <p id="draw-feedback-text"></p>
         </div>
     </div>
 
