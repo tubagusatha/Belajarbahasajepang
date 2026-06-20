@@ -545,11 +545,59 @@ function renderDictionary(type) {
     });
 }
 
-// ==================== FITUR CORAT-CORET (CANVAS + AI) ====================
-let drawMode = ''; 
+// ==================== FITUR CORAT-CORET (CANVAS + AI) — FIXED ====================
+let drawMode = '';
 const canvas = document.getElementById('drawing-board');
 const ctx = canvas.getContext('2d');
 let isDrawing = false;
+
+// ---------------------------------------------------------------------------
+// WORKER TESSERACT DIBUAT SEKALI SAJA & DIPAKAI ULANG.
+// Sebelumnya Tesseract.recognize() dipanggil langsung setiap klik tombol,
+// yang artinya browser harus inisialisasi model bahasa Jepang dari awal
+// tiap kali. Di koneksi lambat ini kelihatan seperti "tidak merespons".
+// ---------------------------------------------------------------------------
+let tesseractWorker = null;
+let tesseractReady = null; // promise, biar tidak ke-init dobel kalau diklik cepat
+
+function buildCharWhitelist() {
+    // Gabungkan SEMUA karakter hiragana + katakana (bukan cuma mode yang aktif).
+    // Kenapa keduanya? Supaya AI tetap bisa mendeteksi "kamu nulis huruf dari
+    // mode yang salah" untuk feedback — tapi tetap TIDAK PERNAH menebak
+    // Kanji/huruf Latin/angka/simbol lain di luar itu.
+    const all = [
+        ...questionBank.hiragana_basic,
+        ...questionBank.hiragana_adv,
+        ...questionBank.katakana_basic,
+        ...questionBank.katakana_adv
+    ];
+    return [...new Set(all.map(item => item.q))].join('');
+}
+
+async function getTesseractWorker() {
+    if (tesseractWorker) return tesseractWorker;
+    if (!tesseractReady) {
+        tesseractReady = (async () => {
+            const worker = await Tesseract.createWorker('jpn'); // Tesseract.js v4/v5 API
+            await worker.setParameters({
+                // PSM 8 (SINGLE_WORD) dipilih daripada PSM 10 (SINGLE_CHAR) karena
+                // banyak kana punya goresan terpisah/disconnected (mis. ソ, ン, さ, き).
+                // PSM 10 kadang gagal kalau goresannya tidak nyambung jadi satu blob.
+                // Kalau hasil tesmu lebih bagus pakai SINGLE_CHAR, ganti ke '10'.
+                tessedit_pageseg_mode: '8',
+                tessedit_char_whitelist: buildCharWhitelist(),
+                preserve_interword_spaces: '0',
+            });
+            tesseractWorker = worker;
+            return worker;
+        })();
+    }
+    return tesseractReady;
+}
+
+// Panggil lebih awal (saat script dimuat) supaya pas user pertama kali pencet
+// tombol "Deteksi", model sudah siap dan tidak perlu menunggu loading lama.
+getTesseractWorker().catch(err => console.error('Gagal menyiapkan Tesseract worker:', err));
 
 function openDrawMode(mode) {
     drawMode = mode;
@@ -565,47 +613,166 @@ function clearCanvas() {
     document.getElementById('draw-result-box').classList.add('hidden');
 }
 
-// LOGIKA MENGGAMBAR
+// ==================== LOGIKA MENGGAMBAR (FIXED) ====================
+
+function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+
+    // PENTING: kalau ukuran tampilan CSS canvas berbeda dari resolusi asli
+    // (atribut width/height-nya), titik gambar akan meleset dari posisi
+    // kursor/jari. Scale factor ini memastikan keduanya selalu sinkron.
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+    };
+}
+
 function startPosition(e) {
     isDrawing = true;
-    draw(e);
+    ctx.beginPath();
+    const { x, y } = getCanvasCoords(e);
+    ctx.moveTo(x, y);
+    if (e.cancelable) e.preventDefault();
 }
 
 function endPosition() {
     isDrawing = false;
-    ctx.beginPath(); 
+    ctx.beginPath();
 }
 
 function draw(e) {
     if (!isDrawing) return;
-    
-    let x = e.clientX || e.touches[0].clientX;
-    let y = e.clientY || e.touches[0].clientY;
-    
-    const rect = canvas.getBoundingClientRect();
-    x = x - rect.left;
-    y = y - rect.top;
 
-    ctx.lineWidth = 10; // Ketebalan pas biar kebaca rapi
+    const { x, y } = getCanvasCoords(e);
+
+    ctx.lineWidth = 14; // sedikit lebih tebal dari sebelumnya agar goresan tidak terputus saat di-downscale
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.strokeStyle = "black";
 
     ctx.lineTo(x, y);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x, y);
-    
-    if (e.cancelable) e.preventDefault(); 
+
+    if (e.cancelable) e.preventDefault();
 }
 
 canvas.addEventListener('mousedown', startPosition);
-canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('touchstart', startPosition, {passive: false});
-canvas.addEventListener('touchend', endPosition);
-canvas.addEventListener('touchmove', draw, {passive: false});
+canvas.addEventListener('mouseup', endPosition);
+// FIX BUG UTAMA: kalau tombol mouse dilepas DI LUAR canvas, 'mouseup' di atas
+// tidak pernah ke-trigger, isDrawing tetap true selamanya, dan gerakan mouse
+// berikutnya (walau tidak menekan tombol) ikut menggambar garis liar yang
+// merusak bentuk huruf. Listener global ini menutup celah itu.
+window.addEventListener('mouseup', endPosition);
 
-// ==================== PROSES AI TESSERACT SUPER AKURAT ====================
+canvas.addEventListener('touchstart', startPosition, {passive: false});
+canvas.addEventListener('touchmove', draw, {passive: false});
+canvas.addEventListener('touchend', endPosition);
+canvas.addEventListener('touchcancel', endPosition);
+
+// ==================== PREPROCESSING GAMBAR UNTUK OCR (BARU) ====================
+// Sebelumnya seluruh canvas (termasuk area putih kosong) diperkecil paksa jadi
+// 60x60px di tengah kanvas 250x250 — ini menghancurkan detail tulisan tangan.
+// Fungsi ini menggantinya dengan pipeline yang jauh lebih akurat:
+//   1) Cari bounding box tinta yang benar-benar digambar (skip area kosong)
+//   2) Crop + kasih padding wajar di sekelilingnya, jaga proporsi persegi
+//   3) Render ke kanvas baru berukuran cukup besar (Tesseract lebih akurat
+//      di gambar yang tidak terlalu kecil)
+//   4) Binarization: ubah semua pixel jadi hitam atau putih murni (hilangkan
+//      abu-abu hasil anti-aliasing/scaling yang membingungkan Tesseract)
+function preprocessCanvasForOCR(sourceCanvas) {
+    const sw = sourceCanvas.width;
+    const sh = sourceCanvas.height;
+    const srcCtx = sourceCanvas.getContext('2d');
+    const { data: pixels } = srcCtx.getImageData(0, 0, sw, sh);
+
+    const DARK_THRESHOLD = 200; // 0-255, pixel lebih gelap dari ini dianggap "tinta"
+    let minX = sw, minY = sh, maxX = -1, maxY = -1;
+
+    for (let y = 0; y < sh; y++) {
+        for (let x = 0; x < sw; x++) {
+            const i = (y * sw + x) * 4;
+            const gray = pixels[i] * 0.299 + pixels[i + 1] * 0.587 + pixels[i + 2] * 0.114;
+            if (gray < DARK_THRESHOLD) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+
+    if (maxX < 0) return null; // canvas masih kosong, belum ada coretan
+
+    // Padding di sekeliling bounding box biar huruf tidak mepet tepi
+    const boxW = maxX - minX;
+    const boxH = maxY - minY;
+    const pad = Math.round(Math.max(boxW, boxH) * 0.25);
+    minX = Math.max(0, minX - pad);
+    minY = Math.max(0, minY - pad);
+    maxX = Math.min(sw - 1, maxX + pad);
+    maxY = Math.min(sh - 1, maxY + pad);
+
+    const cropW = maxX - minX;
+    const cropH = maxY - minY;
+    const side = Math.max(cropW, cropH); // jadikan persegi biar huruf tidak gepeng
+
+    const TARGET = 280; // ukuran final yang nyaman dibaca Tesseract (jauh lebih besar dari 60px sebelumnya)
+    const out = document.createElement('canvas');
+    out.width = TARGET;
+    out.height = TARGET;
+    const outCtx = out.getContext('2d');
+    outCtx.fillStyle = 'white';
+    outCtx.fillRect(0, 0, TARGET, TARGET);
+
+    const margin = TARGET * 0.12;
+    const drawSize = TARGET - margin * 2;
+    const offsetX = minX - (side - cropW) / 2;
+    const offsetY = minY - (side - cropH) / 2;
+
+    outCtx.imageSmoothingEnabled = true;
+    outCtx.imageSmoothingQuality = 'high';
+    outCtx.drawImage(
+        sourceCanvas,
+        offsetX, offsetY, side, side,
+        margin, margin, drawSize, drawSize
+    );
+
+    // Binarization
+    const outImageData = outCtx.getImageData(0, 0, TARGET, TARGET);
+    const outPixels = outImageData.data;
+    const BIN_THRESHOLD = 170;
+    for (let i = 0; i < outPixels.length; i += 4) {
+        const gray = outPixels[i] * 0.299 + outPixels[i + 1] * 0.587 + outPixels[i + 2] * 0.114;
+        const value = gray < BIN_THRESHOLD ? 0 : 255;
+        outPixels[i] = value;
+        outPixels[i + 1] = value;
+        outPixels[i + 2] = value;
+        outPixels[i + 3] = 255;
+    }
+    outCtx.putImageData(outImageData, 0, 0);
+
+    return out;
+}
+
+// ==================== PROSES AI TESSERACT (FIXED) ====================
 async function checkDrawing() {
     const btnCheck = document.getElementById('btn-check-draw');
     const resultBox = document.getElementById('draw-result-box');
@@ -617,31 +784,25 @@ async function checkDrawing() {
     resultBox.classList.add('hidden');
 
     try {
-        // TRIK RAHASIA: Tesseract benci huruf raksasa. 
-        // Kita bikin kanvas palsu yang ukurannya standar, lalu ngecilin coretanmu 
-        // jadi seukuran "font buku" (sekitar 60x60) biar AI-nya gampang baca.
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 250;
-        tempCanvas.height = 250;
-        const tCtx = tempCanvas.getContext('2d');
-        
-        // Kasih background putih murni
-        tCtx.fillStyle = "white";
-        tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Tempel gambar dari papan tulis kamu, tapi ukurannya di-press jadi kecil di tengah-tengah
-        tCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 45, 45, 60, 60);
+        const processedCanvas = preprocessCanvasForOCR(canvas);
 
-        // Lempar gambar yang udah dikecilin ke AI
-        const result = await Tesseract.recognize(tempCanvas, 'jpn', {
-            tessedit_pageseg_mode: 10
-        });
-        
-        const rawText = result.data.text.replace(/\s/g, ''); 
+        if (!processedCanvas) {
+            resultBox.classList.remove('hidden');
+            resultBox.className = "feedback-box alert-danger";
+            charResult.innerText = "✖️";
+            feedbackText.innerHTML = "Kanvasnya masih kosong, coret hurufnya dulu ya!";
+            return;
+        }
+
+        const worker = await getTesseractWorker();
+        const result = await worker.recognize(processedCanvas);
+
+        const rawText = result.data.text.replace(/\s/g, '');
+        const confidence = result.data.confidence; // 0-100
         const detectedChar = rawText.charAt(0);
 
         let validCharacters = [];
-        let wrongCharacters = []; 
+        let wrongCharacters = [];
         let modeName = "";
         let wrongModeName = "";
 
@@ -663,19 +824,27 @@ async function checkDrawing() {
         resultBox.classList.remove('hidden');
         charResult.innerText = detectedChar || "?";
 
-        if (foundCorrect) {
+        // BARU: kalau confidence Tesseract rendah, jangan dipercaya buta —
+        // lebih baik minta user coret ulang daripada menampilkan tebakan ngawur.
+        const MIN_CONFIDENCE = 35;
+
+        if (detectedChar && confidence < MIN_CONFIDENCE) {
+            resultBox.className = "feedback-box alert-danger";
+            charResult.innerText = "✖️";
+            feedbackText.innerHTML = "AI kurang yakin baca coretanmu. Coba tulis dengan goresan yang lebih tebal & jelas, ya!";
+
+        } else if (foundCorrect) {
             resultBox.className = "feedback-box alert-success";
-            charResult.innerText = foundCorrect.q; 
+            charResult.innerText = foundCorrect.q;
             feedbackText.innerHTML = `Hebat! Ini adalah huruf <strong>${foundCorrect.q} (${foundCorrect.correct})</strong>.`;
             playJapaneseSound(foundCorrect.q);
 
         } else if (foundWrongMode) {
             resultBox.className = "feedback-box alert-danger";
-            charResult.innerText = foundWrongMode.q; 
+            charResult.innerText = foundWrongMode.q;
             feedbackText.innerHTML = `Eits! Itu mah huruf ${wrongModeName} <strong>${foundWrongMode.q} (${foundWrongMode.correct})</strong>. Sekarang kan lagi mode ${modeName}! 😂`;
 
         } else if (/[a-zA-Z0-9]/.test(detectedChar)) {
-            // Kalau AI-nya masih ngeyel ngeluarin angka/abjad Latin kayak 'M'
             resultBox.className = "feedback-box alert-danger";
             feedbackText.innerHTML = `Waduh, AI kebingungan dan malah ngebaca coretanmu jadi abjad/angka "<strong>${detectedChar}</strong>". Coba coret lebih luwes lagi ala huruf Jepang!`;
 
@@ -691,7 +860,10 @@ async function checkDrawing() {
 
     } catch (error) {
         console.error(error);
-        alert("Gagal memproses gambar. Pastikan internetmu menyala ya!");
+        resultBox.classList.remove('hidden');
+        resultBox.className = "feedback-box alert-danger";
+        charResult.innerText = "⚠️";
+        feedbackText.innerHTML = "Gagal memproses gambar. Pastikan internetmu menyala, lalu coba lagi ya!";
     } finally {
         btnCheck.innerText = "🔍 Deteksi Huruf";
         btnCheck.disabled = false;
